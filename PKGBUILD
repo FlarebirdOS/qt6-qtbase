@@ -4,7 +4,7 @@ pkgname=(
 )
 pkgbase=qt6-qtbase
 pkgver=6.9.2
-pkgrel=1
+pkgrel=2
 pkgdesc="A cross-platform application and UI framework"
 arch=('x86_64')
 url="https://www.qt.io"
@@ -122,6 +122,7 @@ build() {
 
 package_qt6-qtbase() {
     pkgdesc="A cross-platform application and UI framework"
+    depends+=('qt6-qttranslations')
 
     cd ${pkgbase#*-}-everywhere-src-${pkgver}
 
