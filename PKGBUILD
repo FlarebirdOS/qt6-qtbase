@@ -3,8 +3,8 @@ pkgname=(
     qt6-xcb-private-headers
 )
 pkgbase=qt6-qtbase
-pkgver=6.9.2
-pkgrel=2
+pkgver=6.10.0
+pkgrel=3
 pkgdesc="A cross-platform application and UI framework"
 arch=('x86_64')
 url="https://www.qt.io"
@@ -63,8 +63,10 @@ makedepends=(
     'cmake'
     'cups'
     'freetds'
+    'git'
     'gst-plugins-base-libs'
     'gtk3'
+    'jemalloc'
     'libfbclient'
     'libpulse'
     'mariadb-libs'
@@ -74,27 +76,30 @@ makedepends=(
     'vulkan-headers'
     'xmlstarlet'
 )
-source=(https://download.qt.io/archive/qt/${pkgver%.*}/${pkgver}/submodules/${pkgbase#*-}-everywhere-src-${pkgver}.tar.xz
+source=(git+https://code.qt.io/qt/${pkgname#*-}#tag=v${pkgver}
     qt6-qtbase-cflags.patch
     qt6-qtbase-nostrip.patch)
-sha256sums=(44be9c9ecfe04129c4dea0a7e1b36ad476c9cc07c292016ac98e7b41514f2440
+sha256sums=(be60bf981a67824c2a27155d794eb30d10a6daa71db37695668a8a703acff929
     5411edbe215c24b30448fac69bd0ba7c882f545e8cf05027b2b6e2227abc5e78
     4b93f6a79039e676a56f9d6990a324a64a36f143916065973ded89adc621e094)
 
 prepare() {
-    cd ${pkgbase#*-}-everywhere-src-${pkgver}
+    cd ${pkgbase#*-}
 
     patch -p1 < ${srcdir}/qt6-qtbase-cflags.patch
     patch -p1 < ${srcdir}/qt6-qtbase-nostrip.patch
+
+    # Fix yakuake
+    git cherry-pick -n a374ab6ce9f01f1f559403ec377cde990a689890
 }
 
 build() {
-    cd ${pkgbase#*-}-everywhere-src-${pkgver}
+    cd ${pkgbase#*-}
 
     local cmake_args=(
         -B flarebird-build
         -G Ninja
-        -D CMAKE_BUILD_TYPE=RelWithDebInfo
+        -D CMAKE_BUILD_TYPE=Release
         -D CMAKE_INSTALL_PREFIX=/usr
         -D INSTALL_LIBDIR=lib64
         -D INSTALL_BINDIR=lib64/qt6/bin
@@ -124,7 +129,7 @@ package_qt6-qtbase() {
     pkgdesc="A cross-platform application and UI framework"
     depends+=('qt6-qttranslations')
 
-    cd ${pkgbase#*-}-everywhere-src-${pkgver}
+    cd ${pkgbase#*-}
 
     DESTDIR=${pkgdir} cmake --install flarebird-build
 
@@ -138,7 +143,7 @@ package_qt6-xcb-private-headers() {
     pkgdesc="Private headers for Qt6 Xcb"
     depends=("qt6-qtbase=${pkgver}")
 
-    cd ${pkgbase#*-}-everywhere-src-${pkgver}
+    cd ${pkgbase#*-}
 
     install -d -m755 ${pkgdir}/usr/include/qt6xcb-private/{gl_integrations,nativepainting}
     cp -r src/plugins/platforms/xcb/*.h ${pkgdir}/usr/include/qt6xcb-private/
